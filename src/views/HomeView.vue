@@ -8,53 +8,58 @@
     </a-layout-header>
     <a-layout-content style="padding: 0">
       <a-layout style="padding: 24px 0; background: #fff">
-        <a-layout-sider width="200" style="background: #fff">
+        <a-layout-sider style="background: #fff">
           <a-menu
-            v-model:selectedKeys="selectedKeys2"
-            v-model:openKeys="openKeys"
-            mode="inline"
-            style="height: 100%"
-          >
-            <a-sub-menu key="sub1">
-              <template #title>
-                <span>
-                  <user-outlined />
-                  subnav 1
-                </span>
-              </template>
-              <a-menu-item key="1">option1</a-menu-item>
-              <a-menu-item key="2">option2</a-menu-item>
-              <a-menu-item key="3">option3</a-menu-item>
-              <a-menu-item key="4">option4</a-menu-item>
-            </a-sub-menu>
-            <a-sub-menu key="sub2">
-              <template #title>
-                <span>
-                  <laptop-outlined />
-                  subnav 2
-                </span>
-              </template>
-              <a-menu-item key="5">option5</a-menu-item>
-              <a-menu-item key="6">option6</a-menu-item>
-              <a-menu-item key="7">option7</a-menu-item>
-              <a-menu-item key="8">option8</a-menu-item>
-            </a-sub-menu>
-            <a-sub-menu key="sub3">
-              <template #title>
-                <span>
-                  <notification-outlined />
-                  subnav 3
-                </span>
-              </template>
-              <a-menu-item key="9">option9</a-menu-item>
-              <a-menu-item key="10">option10</a-menu-item>
-              <a-menu-item key="11">option11</a-menu-item>
-              <a-menu-item key="12">option12</a-menu-item>
-            </a-sub-menu>
-          </a-menu>
+          v-model:openKeys="openKeys"
+          v-model:selectedKeys="selectedKeys"
+          mode="vertical"
+          :items="items"
+          @click="handleClick"
+        />
         </a-layout-sider>
         <a-layout-content :style="{ padding: '0 24px', minHeight: '280px' }">
-          Content
+          <a-form
+          :label-col="{ span: 5 }"
+          :wrapper-col="wrapperCol"
+          layout="horizontal"
+        >
+          <div class="grid grid-cols-3 space-x-4">
+              <div class="">            
+                <a-form-item label="Request No">
+                <a-input />
+              </a-form-item>
+              <a-form-item label="Debit account">
+                <a-input />
+              </a-form-item>
+              <a-form-item label="Status">
+                <a-select>
+                  <a-select-option value="demo">Demo</a-select-option>
+                </a-select>
+              </a-form-item>
+              <a-form-item label="Upload">
+                <a-upload action="/upload.do" list-type="picture-card">
+                  <div>
+                    <div style="margin-top: 8px">Upload</div>
+                  </div>
+                </a-upload>
+              </a-form-item></div>
+              <div class="">
+                <a-form-item label="Request Time">
+                  <a-input />
+                </a-form-item>
+                <a-form-item label="Approval date">
+                  <a-input />
+                </a-form-item>
+              </div>
+              <div class="">
+                <a-button>Search</a-button>
+
+              </div>
+          </div>
+  </a-form>
+            <a-table :columns="columns" :data-source="dataSource" :pagination="pagination"
+            @change="handleTableChange" :loading="loading">
+            </a-table>
         </a-layout-content>
       </a-layout>
     </a-layout-content>
@@ -71,14 +76,311 @@
   </a-layout>
 </template>
 <script>
-import { ref } from 'vue';
+import { ref, computed, reactive, h  } from 'vue';
+import { usePagination } from 'vue-request';
+import {
+  MailOutlined,
+  CalendarOutlined,
+  AppstoreOutlined,
+  SettingOutlined,
+} from '@ant-design/icons-vue';
+const selectedKeys = ref([]);
+const openKeys = ref([]);
+const items = ref([
+  {
+    key: '1',
+    icon: () => h(MailOutlined),
+    label: 'Home',
+    title: 'Home',
+  },
+  {
+    key: '2',
+    icon: () => h(CalendarOutlined),
+    label: 'Contract',
+    title: 'Contract',
+    children: [
+      {
+        key: 'contract-list',
+        label: 'Contract list',
+        title: 'Contract list',
+      },
+      {
+        key: 'create-contract',
+        label: 'Create new contract',
+        title: 'Create new contract',
+      },
+      {
+        key: 'approve-contract',
+        label: 'Approve contract',
+        title: 'Approve contract',
+      },
+      {
+        key: 'approve-user',
+        label: 'Approve user',
+        title: 'Approve user',
+      },
+      {
+        key: 'unblock-user',
+        label: 'Unblock user',
+        title: 'Unblock user',
+      },
+      {
+        key: 'reset-password',
+        label: 'Reset pin/ password',
+        title: 'Reset pin/ password',
+      },
+      ]
+  },
+  {
+    key: 'sub1',
+    icon: () => h(AppstoreOutlined),
+    label: 'Fee management',
+    title: 'Fee management',
+    children: [
+      {
+        key: '3',
+        label: 'Set fee',
+        title: 'Set fee',
+      },
+      {
+        key: '4',
+        label: 'Transaction fee',
+        title: 'Transaction fee',
+        children: [
+          {
+            key: '5',
+            label: 'Product fee',
+            title: 'Product fee',
+          },
+          {
+            key: '6',
+            label: 'Contract fee',
+            title: 'Contract fee',
+          },
+          {
+            key: '6',
+            label: 'OTC fee',
+            title: 'OTC fee',
+          },
+        ],
+      },
+      {
+        key: 'sub1-2',
+        label: 'Set fee share',
+        title: 'Set fee share',
+      },
+    ],
+  },
+  {
+    key: 'limit-management',
+    icon: () => h(SettingOutlined),
+    label: 'Limit management',
+    title: 'Limit management',
+    children: [
+      {
+        key: '8',
+        label: 'Product limit',
+        title: 'Product limit',
+      },
+      {
+        key: '9',
+        label: 'Contract limit',
+        title: 'Contract limit',
+      },
+      {
+        key: '10',
+        label: 'Wallet balance limit',
+        title: 'Wallet balance limit',
+      },
+    ],
+  },
+  {
+    key: 'transaction',
+    icon: () => h(SettingOutlined),
+    label: 'Transaction',
+    title: 'Transaction',
+    children: [
+      {
+        key: '8',
+        label: 'Transaction history',
+        title: 'Transaction history',
+      },
+      {
+        key: '9',
+        label: 'Top Up to E-wallet',
+        title: 'Top Up to E-wallet',
+      },
+      {
+        key: '10',
+        label: 'Withdrawal from E-wallet',
+        title: 'Withdrawal from E-wallet',
+      },
+      {
+        key: '11',
+        label: 'Cash back ',
+        title: 'Cash back ',
+      },
+      {
+        key: '12',
+        label: 'Payroll ',
+        title: 'Payroll ',
+      },
+      {
+        key: '13',
+        label: 'Admin transaction',
+        title: 'Admin transaction',
+      },
+      {
+        key: '14',
+        label: 'Reversal transaction',
+        title: 'Reversal transaction',
+      },
+    ],
+  },
+  {
+    key: 'system',
+    icon: () => h(SettingOutlined),
+    label: 'System',
+    title: 'System',
+    children: [
+      {
+        key: 'grm',
+        label: 'Group management',
+        title: 'Group management',
+      },
+      {
+        key: 'um',
+        label: 'User management',
+        title: 'User management',
+      },
+      {
+        key: 'sm',
+        label: 'System parameter',
+        title: 'System parameter',
+      },
+    ],
+  },
+  {
+    key: 'report',
+    icon: () => h(SettingOutlined),
+    label: 'Report',
+    title: 'Report',
+    children: [
+      {
+        key: 'rpl',
+        label: 'Report list',
+        title: 'Report list',
+      },
+    ]
+  }
+]);
+const handleClick = menuInfo => {
+  console.log('click ', menuInfo);
+};
 const selectedKeys1 = ref(['2']);
 const selectedKeys2 = ref(['1']);
-const openKeys = ref(['sub1']);
-export default{
+const wrapperCol = {
+  span: 14,
+};
+const checked = ref(false);
+const columns = ref([
+  {
+    name: 'Name',
+    dataIndex: 'name',
+    key: 'name',
+  },
+  {
+    name: 'Username',
+    dataIndex: 'username',
+    key: 'username',
+  },
+  {
+    name: 'Email',
+    dataIndex: 'email',
+    key: 'email',
+  },
+  {
+    title: 'Age',
+    dataIndex: 'age',
+    key: 'age',
+  },
+  {
+    title: 'Address',
+    dataIndex: 'address',
+    key: 'address',
+  },
+  {
+    title: 'Phone number',
+    key: 'phone_number',
+    dataIndex: 'phone_number',
+  },
+  {
+    title: 'Subcription',
+    key: 'action',
+  },
+]);
+const data = ref([
+  {
+    key: '1',
+    name: 'John Brown',
+    age: 32,
+    address: 'New York No. 1 Lake Park',
+    tags: ['nice', 'developer'],
+  },
+  {
+    key: '2',
+    name: 'Jim Green',
+    age: 42,
+    address: 'London No. 1 Lake Park',
+    tags: ['loser'],
+  },
+  {
+    key: '3',
+    name: 'Joe Black',
+    age: 32,
+    address: 'Sidney No. 1 Lake Park',
+    tags: ['cool', 'teacher'],
+  },
+]);
+
+export default{ 
   setup(props) {
+    let dataTable = ref([])
+    const err = ref([])
+    const fetchData = async() =>{
+      const response = await fetch("https://random-data-api.com/api/users/random_user?size=20");
+      dataTable = await response.json()
+    }
+    fetchData();
+    const {
+    data: dataSource,
+    run,
+    loading,
+    current,
+    pageSize,
+    } = usePagination(fetchData, {
+    formatResult: res => res.data.results,
+    pagination: {
+      currentKey: 'page',
+      pageSizeKey: 'results',
+    },
+  });
+    const pagination = computed(() => ({
+    total: 200,
+    current: current.value,
+    pageSize: pageSize.value,
+    }));
+    const handleTableChange = (pag, filters, sorter) => {
+    run({
+    results: pag.pageSize,
+    page: pag?.current,
+    sortField: sorter.field,
+    sortOrder: sorter.order,
+    ...filters,
+   });
+};
     return{
-      selectedKeys2, selectedKeys1, openKeys
+      selectedKeys2, selectedKeys1, openKeys,items, data, columns,dataTable, pagination, dataSource, handleTableChange, loading
     }
   }
 }
@@ -103,5 +405,11 @@ export default{
 
 .site-layout-background {
   background: #fff;
+}
+.ant-layout-has-sider{
+  height: 100%;
+}
+.ant-menu-vertical >.ant-menu-item{
+  text-align: initial;
 }
 </style>
