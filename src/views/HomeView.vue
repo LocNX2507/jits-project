@@ -7,20 +7,17 @@
       </div>
     </a-layout-header>
     <a-layout-content style="padding: 0">
-      <a-layout style="padding: 24px 0; background: #fff">
+      <a-layout style="padding: 0; background: #fff">
         <a-layout-sider style="background: #fff">
           <a-menu
           v-model:openKeys="openKeys"
           v-model:selectedKeys="selectedKeys"
-          mode="vertical"
           :items="items"
-          @click="handleClick"
         />
         </a-layout-sider>
-        <a-layout-content :style="{ padding: '0 24px', minHeight: '280px' }">
+        <a-layout-content class="overflow-y-auto">
           <a-form
           :label-col="{ span: 5 }"
-          :wrapper-col="wrapperCol"
           layout="horizontal"
         >
           <div class="grid grid-cols-3 space-x-4">
@@ -56,10 +53,18 @@
 
               </div>
           </div>
-  </a-form>
-            <a-table :columns="columns" :data-source="dataSource" :pagination="pagination"
-            @change="handleTableChange" :loading="loading">
-            </a-table>
+          </a-form>
+          <a-table :columns="columns" :data-source="dataTable" :pagination="pagination"
+          @change="handleTableChange" :loading="loading"
+          class="relative"
+          >
+          </a-table>
+          <a-carousel :after-change="onChange">
+            <div><h3>Advertise 1</h3></div>
+            <div><h3>Advertise 2</h3></div>
+            <div><h3>Advertise 3</h3></div>
+            <div><h3>Advertise 4</h3></div>
+          </a-carousel>
         </a-layout-content>
       </a-layout>
     </a-layout-content>
@@ -76,26 +81,21 @@
   </a-layout>
 </template>
 <script>
-import { ref, computed, reactive, h  } from 'vue';
+import { ref, computed  } from 'vue';
 import { usePagination } from 'vue-request';
-import {
-  MailOutlined,
-  CalendarOutlined,
-  AppstoreOutlined,
-  SettingOutlined,
-} from '@ant-design/icons-vue';
+const onChange = current => {
+  console.log(current);
+};
 const selectedKeys = ref([]);
 const openKeys = ref([]);
 const items = ref([
   {
     key: '1',
-    icon: () => h(MailOutlined),
     label: 'Home',
     title: 'Home',
   },
   {
     key: '2',
-    icon: () => h(CalendarOutlined),
     label: 'Contract',
     title: 'Contract',
     children: [
@@ -133,7 +133,6 @@ const items = ref([
   },
   {
     key: 'sub1',
-    icon: () => h(AppstoreOutlined),
     label: 'Fee management',
     title: 'Fee management',
     children: [
@@ -173,7 +172,6 @@ const items = ref([
   },
   {
     key: 'limit-management',
-    icon: () => h(SettingOutlined),
     label: 'Limit management',
     title: 'Limit management',
     children: [
@@ -196,7 +194,6 @@ const items = ref([
   },
   {
     key: 'transaction',
-    icon: () => h(SettingOutlined),
     label: 'Transaction',
     title: 'Transaction',
     children: [
@@ -239,7 +236,6 @@ const items = ref([
   },
   {
     key: 'system',
-    icon: () => h(SettingOutlined),
     label: 'System',
     title: 'System',
     children: [
@@ -262,7 +258,6 @@ const items = ref([
   },
   {
     key: 'report',
-    icon: () => h(SettingOutlined),
     label: 'Report',
     title: 'Report',
     children: [
@@ -274,35 +269,36 @@ const items = ref([
     ]
   }
 ]);
-const handleClick = menuInfo => {
-  console.log('click ', menuInfo);
-};
-const selectedKeys1 = ref(['2']);
-const selectedKeys2 = ref(['1']);
-const wrapperCol = {
-  span: 14,
-};
-const checked = ref(false);
 const columns = ref([
   {
-    name: 'Name',
+    title: 'Id',
+    dataIndex: 'id',
+    key: 'id',
+  },
+  {
+    title: 'Name',
     dataIndex: 'name',
     key: 'name',
   },
   {
-    name: 'Username',
+    title: 'Username',
     dataIndex: 'username',
     key: 'username',
   },
   {
-    name: 'Email',
+    title: 'Password',
+    dataIndex: 'password',
+    key: 'password',
+  },
+  {
+    title: 'Email',
     dataIndex: 'email',
     key: 'email',
   },
   {
     title: 'Age',
-    dataIndex: 'age',
-    key: 'age',
+    dataIndex: 'date_of_birth',
+    key: 'date_of_birth',
   },
   {
     title: 'Address',
@@ -315,56 +311,79 @@ const columns = ref([
     dataIndex: 'phone_number',
   },
   {
-    title: 'Subcription',
-    key: 'action',
+    title: 'Status',
+    key: 'subscription',
+    dataIndex: 'subscription',
+
   },
 ]);
-const data = ref([
+let dataTable = ref([
   {
     key: '1',
     name: 'John Brown',
     age: 32,
+    phone_number:'43895345349509345',
     address: 'New York No. 1 Lake Park',
     tags: ['nice', 'developer'],
+    subcription:'Subcription'
   },
   {
     key: '2',
     name: 'Jim Green',
     age: 42,
+    phone_number:'43895345349509345',
     address: 'London No. 1 Lake Park',
     tags: ['loser'],
+    subcription:'Subcription'
   },
   {
     key: '3',
     name: 'Joe Black',
     age: 32,
+    phone_number:'43895345349509345',
     address: 'Sidney No. 1 Lake Park',
     tags: ['cool', 'teacher'],
+    subcription:'Subcription'
   },
 ]);
-
 export default{ 
   setup(props) {
-    let dataTable = ref([])
-    const err = ref([])
     const fetchData = async() =>{
       const response = await fetch("https://random-data-api.com/api/users/random_user?size=20");
-      dataTable = await response.json()
+      dataTable.value = await response.json()
+       dataTable.value.forEach((item) => {
+        item.name = item.first_name + ' ' + item.last_name
+        item.address = item.address.city + item.address.street_name + item.address.street_address + item.address.country
+        item.credit_card = item.credit_card.cc_number
+        item.subscription = item.subscription.status
+      })
+       console.log(dataTable);
     }
-    fetchData();
-    const {
-    data: dataSource,
-    run,
-    loading,
-    current,
-    pageSize,
-    } = usePagination(fetchData, {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+    const {data: dataSource,run,loading,current,pageSize,} = usePagination(fetchData, {
     formatResult: res => res.data.results,
-    pagination: {
-      currentKey: 'page',
-      pageSizeKey: 'results',
-    },
-  });
+    pagination: {currentKey: 'page',pageSizeKey: 'results',},
+    });
     const pagination = computed(() => ({
     total: 200,
     current: current.value,
@@ -380,9 +399,10 @@ export default{
    });
 };
     return{
-      selectedKeys2, selectedKeys1, openKeys,items, data, columns,dataTable, pagination, dataSource, handleTableChange, loading
+      selectedKeys, openKeys,items, columns,dataTable, pagination, handleTableChange, loading
     }
   }
+
 }
 </script>
 <style scoped>
@@ -409,7 +429,15 @@ export default{
 .ant-layout-has-sider{
   height: 100%;
 }
-.ant-menu-vertical >.ant-menu-item{
-  text-align: initial;
+:deep(.slick-slide) {
+  text-align: center;
+  height: 160px;
+  line-height: 160px;
+  background: black;
+  overflow: hidden;
+}
+
+:deep(.slick-slide h3) {
+  color: #fff;
 }
 </style>
